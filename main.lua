@@ -3,7 +3,7 @@ screenX = 576
 screenY = 480
 
 boardX = 10
-boardY = 15
+boardY = 32
 
 tileX = 32
 tileY = 32
@@ -17,6 +17,7 @@ green = 5
 cyan = 6
 blue = 7
 violet = 8
+other = 9
 
 pieceI = 2
 pieceJ = 3
@@ -62,7 +63,14 @@ function createBoard()
 	for i=1, boardX do
 		myBoard[i] = {}
 		for j=1, boardY do
-			myBoard[i][j] = gray
+			if j < boardY/2 then
+				myBoard[i][j] = gray
+			else if j == boardY/2 and i <= boardX/2 then
+					myBoard[i][j] =	gray 
+				else
+					myBoard[i][j] =	other
+			end 
+			end
 		end
 	end
 	
@@ -166,12 +174,20 @@ end
 function createImages()
 	cubes[gray] = love.graphics.newImage("images/cubeGray.png")
 	cubes[red] = love.graphics.newImage("images/cubeRed.png")
-	cubes[orange] = love.graphics.newImage("images/cubeOrange.png")
-	cubes[yellow] = love.graphics.newImage("images/cubeYellow.png")
-	cubes[green] = love.graphics.newImage("images/cubeGreen.png")
-	cubes[cyan] = love.graphics.newImage("images/cubeCyan.png")
-	cubes[blue] = love.graphics.newImage("images/cubeBlue.png")
-	cubes[violet] = love.graphics.newImage("images/cubeViolet.png")
+	cubes[orange] = love.graphics.newImage("images/cubeRed.png")
+	cubes[yellow] = love.graphics.newImage("images/cubeRed.png")
+	cubes[green] = love.graphics.newImage("images/cubeRed.png")
+	cubes[cyan] = love.graphics.newImage("images/cubeRed.png")
+	cubes[blue] = love.graphics.newImage("images/cubeRed.png")
+	cubes[violet] = love.graphics.newImage("images/cubeRed.png")
+	cubes[other] = love.graphics.newImage("images/cubeGreen.png")
+--	cubes[orange] = love.graphics.newImage("images/cubeOrange.png")
+--	cubes[yellow] = love.graphics.newImage("images/cubeYellow.png")
+--	cubes[green] = love.graphics.newImage("images/cubeGreen.png")
+--	cubes[cyan] = love.graphics.newImage("images/cubeCyan.png")
+--	cubes[blue] = love.graphics.newImage("images/cubeBlue.png")
+--	cubes[violet] = love.graphics.newImage("images/cubeViolet.png")
+
 end
 
 --Renders the current block to the screen
@@ -244,7 +260,7 @@ function love.draw()
 	end
 	
 	renderBlock(activeBlock)
-	renderQueueBlock(queueBlock)
+	--renderQueueBlock(queueBlock)
 end
 
 --Renders Game Over screen
@@ -266,7 +282,7 @@ end
 
 --Draw the game title
 function renderTitle()
-	local toPrint = "Tetris"
+	local toPrint = "OpenInverted"
 	local textWidth = bigFont:getWidth(toPrint)
 	local boardWidth = boardX*tileX
 	
@@ -295,7 +311,7 @@ function love.update(dt)
 		return
 	end
 	
-	tryRemoveRows()
+--	tryRemoveRows()
 	
 	keyPressTimerL = keyPressTimerL - dt
 	keyPressTimerR = keyPressTimerR - dt

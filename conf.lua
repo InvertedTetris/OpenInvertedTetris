@@ -1,7 +1,7 @@
 function love.conf( t )
 
 	t.title = "Tetris"			-- The window title (string)
-	t.author = "Todd Nelling"   -- The author of the game (string)
+	t.author = "Todd Nelling and Oren"  -- The author of the game (string)
 
 	t.version = 0.72            -- The LÖVE version this game was made for (number)
 	t.console = false           -- Attach a console (boolean, Windows only)
