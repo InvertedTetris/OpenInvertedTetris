@@ -1,9 +1,9 @@
 --Global variables
-screenX = 576
-screenY = 480
+screenX = 640 
+screenY = 760
 
 boardX = 10
-boardY = 32
+boardY = 22
 
 tileX = 32
 tileY = 32
@@ -47,6 +47,7 @@ rotation = 6
 rotPressDelay = 0.2 --Amount of time between rotation key presses
 keyPressDelay = 0.1 --Amount of time between non-rotation key presses
 descentDelay = 1 --Amount of time for a piece to drop one square at game start
+descentDelay2 = 1 --Amount of time for a piece to drop one square at game start
 minDelay = 0.05 --Minimum descent delay (never gets faster than this)
 scoreDelayThreshold = 10 --Score threshold for increase in descent speed
 speedIncrease = 0.05 --Reduction in time for a piece to drop when threshold is hit
@@ -208,13 +209,16 @@ function renderBlock(blockToDraw)
 end
 
 --Randomly chooses a new block to drop and returns it
-function getNewBlock()
+function getNewBlock(inverted)
 	math.random()
 	math.random()
 	math.random()
 	
 	local newPiece = math.random(pieceI, pieceZ)
 	local newRow = 1
+	if inverted then
+		newRow = boardY-4
+	end
 	local newCol = pieceCentering[newPiece] + 1
 	
 	local newBlock = {}
@@ -260,6 +264,7 @@ function love.draw()
 	end
 	
 	renderBlock(activeBlock)
+	renderBlock(activeBlock2)
 	--renderQueueBlock(queueBlock)
 end
 
@@ -310,8 +315,11 @@ function love.update(dt)
 	if gameState == pause then
 		return
 	end
-	
---	tryRemoveRows()
+	update1(dt)
+	update2(dt)
+end
+
+function update1(dt)	
 	
 	keyPressTimerL = keyPressTimerL - dt
 	keyPressTimerR = keyPressTimerR - dt
@@ -319,14 +327,14 @@ function love.update(dt)
 	keyPressTimerD = keyPressTimerD - dt
 	
 	if keyPressTimerU <= 0 then
-		if love.keyboard.isDown("w") or love.keyboard.isDown("up") or love.keyboard.isDown(" ") then
+		if love.keyboard.isDown("up") then
 			attemptRotation()
 			keyPressTimerU = rotPressDelay
 		end
 	end
 		
 	if keyPressTimerL <= 0 then
-		if love.keyboard.isDown("a") or love.keyboard.isDown("left") then
+		if love.keyboard.isDown("left") then
 			if checkBlockedLeft()==false then
 				activeBlock[col] = activeBlock[col] - 1
 			end
@@ -335,7 +343,7 @@ function love.update(dt)
 	end
 
 	if keyPressTimerR <= 0 then
-		if love.keyboard.isDown("d") or love.keyboard.isDown("right") then
+		if love.keyboard.isDown("right") then
 			if checkBlockedRight()==false then
 				activeBlock[col] = activeBlock[col] + 1
 			end
@@ -344,7 +352,7 @@ function love.update(dt)
 	end
 		
 	if keyPressTimerD <= 0 then
-		if love.keyboard.isDown("s") or love.keyboard.isDown("down") then
+		if love.keyboard.isDown("down") then
 			if checkBlockedDown() then
 				addBlockToBoard()
 			else
@@ -364,6 +372,64 @@ function love.update(dt)
 			addBlockToBoard()
 		else
 			activeBlock[row] = activeBlock[row] + 1
+		end
+	end	
+end
+
+
+function update2(dt)	
+	
+	keyPressTimerL2 = keyPressTimerL2 - dt
+	keyPressTimerR2 = keyPressTimerR2 - dt
+	keyPressTimerU2 = keyPressTimerU2 - dt
+	keyPressTimerD2 = keyPressTimerD2 - dt
+	
+	if keyPressTimerU2 <= 0 then
+		if love.keyboard.isDown("s") then
+			attemptRotation2()
+			keyPressTimerU2 = rotPressDelay
+		end
+	end
+		
+	if keyPressTimerL2 <= 0 then
+		if love.keyboard.isDown("a") then
+			if checkBlockedLeft2()==false then
+				activeBlock2[col] = activeBlock2[col] - 1
+			end
+			keyPressTimerL2 = keyPressDelay
+		end
+	end
+
+	if keyPressTimerR2 <= 0 then
+		if love.keyboard.isDown("d") then
+			if checkBlockedRight2()==false then
+				activeBlock2[col] = activeBlock2[col] + 1
+			end
+			keyPressTimerR2 = keyPressDelay
+		end
+	end
+		
+	if keyPressTimerD2 <= 0 then
+		if love.keyboard.isDown("w") then
+			if checkBlockedDown2() then
+				addBlockToBoard2()
+			else
+				activeBlock2[row] = activeBlock2[row] - 1
+			end
+			keyPressTimerD2 = keyPressDelay
+		end
+	end
+	
+	--Keeping the check here allows for 'wall kicks'
+	--Wall kicks are larger at slower descent speeds
+	--Add a check before the key press checks to eliminate wall kicks
+	descentTimer2 = descentTimer2 - dt
+	if descentTimer2 <=0 then
+		descentTimer2 = descentDelay
+		if checkBlockedDown2() then
+			addBlockToBoard2()
+		else
+			activeBlock2[row] = activeBlock2[row] - 1
 		end
 	end	
 end
@@ -406,6 +472,27 @@ function checkBlockedDown()
 	return false
 end
 
+--TODO Returns true if a block has 'landed'
+function checkBlockedDown2()
+	if activeBlock2[row] + activeBlock2[height] > boardY then
+		return true
+	end
+	for i=1,activeBlock2[width] do
+		for j=1, activeBlock2[height] do
+			if activeBlock2[piece][i][j] then
+				if board[activeBlock2[col]+i-1]~=nil then
+					if board[activeBlock2[col]+i-1][activeBlock2[row]-j]~=nil then
+						if board[activeBlock2[col]+i-1][activeBlock2[row]-j]~=other then
+							return true
+						end
+					end
+				end
+			end
+		end
+	end
+	return false
+end
+
 --Returns true if a block can't slide to the left
 function checkBlockedLeft()
 	if activeBlock[col] < 2 then
@@ -417,6 +504,27 @@ function checkBlockedLeft()
 				if board[activeBlock[col]+i-2]~=nil then
 					if board[activeBlock[col]+i-2][activeBlock[row]+j-1]~=nil then
 						if board[activeBlock[col]+i-2][activeBlock[row]+j-1]~=gray then
+							return true
+						end
+					end
+				end
+			end
+		end
+	end
+	return false
+end
+
+--Returns true if a block can't slide to the left
+function checkBlockedLeft2()
+	if activeBlock2[col] < 2 then
+		return true
+	end
+	for i=1,activeBlock2[width] do
+		for j=1,activeBlock2[height] do
+			if activeBlock2[piece][i][j] then
+				if board[activeBlock2[col]+i-2]~=nil then
+					if board[activeBlock2[col]+i-2][activeBlock2[row]+j-1]~=nil then
+						if board[activeBlock2[col]+i-2][activeBlock2[row]+j-1]~=other then
 							return true
 						end
 					end
@@ -448,8 +556,30 @@ function checkBlockedRight()
 	return false
 end
 
+--Returns true if a block can't slide to the right
+function checkBlockedRight2()
+	if activeBlock2[col] + activeBlock2[width] > boardX then
+		return true
+	end
+	for i=1,activeBlock2[width] do
+		for j=1,activeBlock2[height] do
+			if activeBlock2[piece][i][j] then
+				if board[activeBlock2[col]+i]~=nil then
+					if board[activeBlock2[col]+i][activeBlock2[row]+j-1]~=nil then
+						if board[activeBlock2[col]+i][activeBlock2[row]+j-1]~=other then
+							return true
+						end
+					end
+				end
+			end
+		end
+	end
+	return false
+end
+
+
 --Returns true if a block is in a legal position
-function checkLegal(blockToCheck)
+function checkLegal(blockToCheck, inverted)
 	for i=1,blockToCheck[width] do
 		for j=1,blockToCheck[height] do
 			if blockToCheck[piece][i][j] then
@@ -457,7 +587,9 @@ function checkLegal(blockToCheck)
 					return false
 				elseif board[blockToCheck[col]+i-1][blockToCheck[row]+j-1] == nil then
 					return false
-				elseif board[blockToCheck[col]+i-1][blockToCheck[row]+j-1]~=gray then
+				elseif inverted and board[blockToCheck[col]+i-1][blockToCheck[row]+j-1]~=other then
+					return false
+				elseif not inverted and board[blockToCheck[col]+i-1][blockToCheck[row]+j-1]~=gray then
 					return false
 				end
 			end
@@ -534,6 +666,74 @@ function attemptRotation()
 	end
 end
 
+--Attempts to rotate a piece clockwise, does nothing if illegal
+function attemptRotation2()
+	--No sense rotating the box piece
+	if activeBlock2[color] == pieceO then
+		return
+	end
+	
+	local newBlock = {}
+	newBlock[piece] = {}
+	newBlock[color] = activeBlock2[color]
+	newBlock[rotation] = activeBlock2[rotation]+1
+	if newBlock[rotation] == 5 then
+		newBlock[rotation] = 1
+	end
+
+	if activeBlock2[color] == pieceI or activeBlock2[color] == pieceS or activeBlock2[color] == pieceZ then
+		if activeBlock2[rotation] == 1 then
+			newBlock[col] = activeBlock2[col]-math.floor((activeBlock2[height]-activeBlock2[width])/2)
+			newBlock[row] = activeBlock2[row]-math.ceil((activeBlock2[width]-activeBlock2[height])/2)
+		elseif activeBlock2[rotation] == 2 then
+			newBlock[col] = activeBlock2[col]-math.ceil((activeBlock2[height]-activeBlock2[width])/2)
+			newBlock[row] = activeBlock2[row]-math.floor((activeBlock2[width]-activeBlock2[height])/2)
+		elseif activeBlock2[rotation] == 3 then
+			newBlock[col] = activeBlock2[col]-math.floor((activeBlock2[height]-activeBlock2[width])/2)
+			newBlock[row] = activeBlock2[row]-math.ceil((activeBlock2[width]-activeBlock2[height])/2)
+		elseif activeBlock2[rotation] == 4 then
+			newBlock[col] = activeBlock2[col]-math.ceil((activeBlock2[height]-activeBlock2[width])/2)
+			newBlock[row] = activeBlock2[row]-math.floor((activeBlock2[width]-activeBlock2[height])/2)
+		end
+	else
+		if activeBlock2[rotation] == 1 then
+			newBlock[col] = activeBlock2[col]-math.floor((activeBlock2[height]-activeBlock2[width])/2)
+			newBlock[row] = activeBlock2[row]-math.floor((activeBlock2[width]-activeBlock2[height])/2)
+		elseif activeBlock2[rotation] == 2 then
+			newBlock[col] = activeBlock2[col]-math.ceil((activeBlock2[height]-activeBlock2[width])/2)
+			newBlock[row] = activeBlock2[row]-math.floor((activeBlock2[width]-activeBlock2[height])/2)
+		elseif activeBlock2[rotation] == 3 then
+			newBlock[col] = activeBlock2[col]-math.ceil((activeBlock2[height]-activeBlock2[width])/2)
+			newBlock[row] = activeBlock2[row]-math.ceil((activeBlock2[width]-activeBlock2[height])/2)
+		elseif activeBlock2[rotation] == 4 then
+			newBlock[col] = activeBlock2[col]-math.floor((activeBlock2[height]-activeBlock2[width])/2)
+			newBlock[row] = activeBlock2[row]-math.ceil((activeBlock2[width]-activeBlock2[height])/2)
+		end
+	end
+	
+	newBlock[height] = activeBlock2[width]
+	newBlock[width] = activeBlock2[height]
+	
+	for i=1,newBlock[width] do
+		newBlock[piece][i] = {}
+	end
+	
+	for i=1,activeBlock2[width] do
+		for j=1,activeBlock2[height] do
+			newBlock[piece][activeBlock2[height]-j+1][i] = activeBlock2[piece][i][j]
+		end
+	end
+	
+	if checkLegal(newBlock, true)==true then
+		activeBlock2 = newBlock
+	else
+		bump(newBlock)
+		if checkLegal(newBlock, true)==true then
+			activeBlock2 = newBlock
+		end
+	end
+end
+
 --Attempts to 'bump' a piece back on to the board, to allow for more flexibility when rotating
 function bump(blockToBump)
 	if blockToBump[row] < 1 then
@@ -552,7 +752,7 @@ function addBlockToBoard()
 	for i=1,activeBlock[width] do
 		for j=1,activeBlock[height] do
 			if activeBlock[piece][i][j] then
-				board[activeBlock[col]+i-1][activeBlock[row]+j-1] = activeBlock[color]
+				board[activeBlock[col]+i-1][activeBlock[row]+j-1] = other 
 			end
 		end
 	end
@@ -567,39 +767,24 @@ function addBlockToBoard()
 	queueBlock = getNewBlock()
 end
 
---Attempt to remove completed rows
-function tryRemoveRows()
-
-	local completedRows = {}
-	local numCompleted = 0
-	local newBoard = createBoard()
-	
-	for j=boardY,1,-1 do
-		completedRows[j] = true
-		for i=1,boardX do
-			if board[i][j] == gray then
-				completedRows[j] = false
-				break
+--Puts a block on the board and gets a new block
+function addBlockToBoard2()
+	for i=1,activeBlock2[width] do
+		for j=1,activeBlock2[height] do
+			if activeBlock2[piece][i][j] then
+				board[activeBlock2[col]+i-1][activeBlock2[row]+j-1] = gray 
 			end
 		end
 	end
 	
-	for j=boardY,1,-1 do
-		if completedRows[j] then
-			numCompleted = numCompleted+1
-		end
-		for i=1,boardX do
-			if j-numCompleted > 0 then
-				newBoard[i][j] = board[i][j-numCompleted]
-			end
-		end
+	activeBlock2 = queueBlock2
+	
+	--Check to see if game is over
+	if checkLegal(activeBlock2, true)==false then
+		gameOver = true
 	end
 	
-	if numCompleted > 0 then
-		addToScore(numCompleted)
-	end
-	
-	board = newBoard
+	queueBlock2 = getNewBlock(true)
 end
 
 --Updates current score and increase speed if appropriate
@@ -672,6 +857,15 @@ function beginGame()
 	keyPressTimerD = 0
 	score = 0
 	scoreThresholdTracker = 0
+
+	descentTimer2 = 0
+	keyPressTimerL2 = 0
+	keyPressTimerR2 = 0
+	keyPressTimerU2 = 0
+	keyPressTimerD2 = 0
+	score2 = 0
+	scoreThresholdTracker2 = 0
+
 	gameOver = false
 	gameState = play
 	gameOverTimer = 0
@@ -680,6 +874,11 @@ function beginGame()
 	queueBlock = {}
 	activeBlock = getNewBlock()
 	queueBlock = getNewBlock()
+
+	activeBlock2 = {}
+	queueBlock2 = {}
+	activeBlock2 = getNewBlock(true)
+	queueBlock2 = getNewBlock(true)
 end
 
 --Run once at game start 
