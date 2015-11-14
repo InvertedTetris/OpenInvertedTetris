@@ -10,14 +10,7 @@ tileY = 32
 
 cubes = {}
 gray = 1
-red = 2
-orange = 3
-yellow = 4
-green = 5
-cyan = 6
-blue = 7
-violet = 8
-other = 9
+other = 2
 
 pieceI = 2
 pieceJ = 3
@@ -46,12 +39,11 @@ rotation = 6
 
 rotPressDelay = 0.2 --Amount of time between rotation key presses
 keyPressDelay = 0.1 --Amount of time between non-rotation key presses
-descentDelay = 1 --Amount of time for a piece to drop one square at game start
-descentDelay2 = 1 --Amount of time for a piece to drop one square at game start
+descentDelayStart = 1--Amount of time for a piece to drop one square at game start
 minDelay = 0.05 --Minimum descent delay (never gets faster than this)
-scoreDelayThreshold = 10 --Score threshold for increase in descent speed
+scoreDelayThreshold = 1 --Score threshold for increase in descent speed
 speedIncrease = 0.05 --Reduction in time for a piece to drop when threshold is hit
-gameOverDelay = 3 --Amount of time between game over and ability to hit a key to continue
+gameOverDelay = 1.5 --Amount of time between game over and ability to hit a key to continue
 
 play = 0
 pause = 1
@@ -174,13 +166,6 @@ end
 --Load the images
 function createImages()
 	cubes[gray] = love.graphics.newImage("images/cubeGray.png")
-	cubes[red] = love.graphics.newImage("images/cubeRed.png")
-	cubes[orange] = love.graphics.newImage("images/cubeRed.png")
-	cubes[yellow] = love.graphics.newImage("images/cubeRed.png")
-	cubes[green] = love.graphics.newImage("images/cubeRed.png")
-	cubes[cyan] = love.graphics.newImage("images/cubeRed.png")
-	cubes[blue] = love.graphics.newImage("images/cubeRed.png")
-	cubes[violet] = love.graphics.newImage("images/cubeRed.png")
 	cubes[other] = love.graphics.newImage("images/cubeGreen.png")
 --	cubes[orange] = love.graphics.newImage("images/cubeOrange.png")
 --	cubes[yellow] = love.graphics.newImage("images/cubeYellow.png")
@@ -192,7 +177,7 @@ function createImages()
 end
 
 --Renders the current block to the screen
-function renderBlock(blockToDraw)
+function renderBlock(blockToDraw, inverted)
 	local pieceToDraw = blockToDraw[piece]
 	local x = blockToDraw[col]
 	local y = blockToDraw[row]
@@ -200,7 +185,11 @@ function renderBlock(blockToDraw)
 	for i=1,blockToDraw[width] do
 		for j=1,blockToDraw[height] do
 			if pieceToDraw[i][j] then
-				love.graphics.draw(cubes[blockToDraw[color]], tileX*(x+i-2), tileY*(y+j-2))
+				if inverted then
+					love.graphics.draw(cubes[gray], tileX*(x+i-2), tileY*(y+j-2))
+				else
+					love.graphics.draw(cubes[other], tileX*(x+i-2), tileY*(y+j-2))
+				end
 			end
 			j=j+1
 		end
@@ -264,8 +253,9 @@ function love.draw()
 	end
 	
 	renderBlock(activeBlock)
-	renderBlock(activeBlock2)
-	--renderQueueBlock(queueBlock)
+	renderBlock(activeBlock2, true)
+	renderQueueBlock(queueBlock, false)
+	renderQueueBlock(queueBlock2, true)
 end
 
 --Renders Game Over screen
@@ -317,6 +307,7 @@ function love.update(dt)
 	end
 	update1(dt)
 	update2(dt)
+	score = score + dt
 end
 
 function update1(dt)	
@@ -765,6 +756,7 @@ function addBlockToBoard()
 	end
 	
 	queueBlock = getNewBlock()
+	increaseDifficulty()
 end
 
 --Puts a block on the board and gets a new block
@@ -785,28 +777,40 @@ function addBlockToBoard2()
 	end
 	
 	queueBlock2 = getNewBlock(true)
+	increaseDifficulty(true)
 end
 
 --Updates current score and increase speed if appropriate
-function addToScore(lines)
-	local scoreIncrease = (lines*(lines+1))/2
-	score = score+scoreIncrease
-	
-	--If descentDelay isn't greater than minDelay, we're done increasing speed
-	if descentDelay > minDelay then
-		scoreThresholdTracker = scoreThresholdTracker+scoreIncrease
-		
-		--Increase speed
-		while scoreThresholdTracker >= scoreDelayThreshold do
-			scoreThresholdTracker = scoreThresholdTracker-scoreDelayThreshold
-			descentDelay = descentDelay-speedIncrease
+function increaseDifficulty(inverted)
+	if inverted then
+		--If descentDelay isn't greater than minDelay, we're done increasing speed
+		if descentDelay2 > minDelay then
+			scoreThresholdTracker2 = scoreThresholdTracker2+1
+			
+			--Increase speed
+			while scoreThresholdTracker2 >= scoreDelayThreshold do
+				scoreThresholdTracker2 = scoreThresholdTracker2-scoreDelayThreshold
+				descentDelay2 = descentDelay2-speedIncrease
+			end
+		end
+	else
+		--If descentDelay isn't greater than minDelay, we're done increasing speed
+		if descentDelay > minDelay then
+			scoreThresholdTracker = scoreThresholdTracker+1
+			
+			--Increase speed
+			while scoreThresholdTracker >= scoreDelayThreshold do
+				scoreThresholdTracker = scoreThresholdTracker-scoreDelayThreshold
+				descentDelay = descentDelay-speedIncrease
+			end
 		end
 	end
 end
 
 --Draws score to screen
+--TODO round time
 function renderScore()
-	local toPrint = "Score: " .. score
+	local toPrint = "Time: " .. score
 	local textWidth = medFont:getWidth(toPrint)
 	local boardWidth = boardX*tileX
 	
@@ -815,8 +819,8 @@ function renderScore()
 end
 
 --Draws upcoming block
-function renderQueueBlock(blockToDraw)
-	local toPrint = "Next Piece:"
+function renderQueueBlock(blockToDraw, inverted)
+	local toPrint = "Next Pieces:"
 	local textWidth = medFont:getWidth(toPrint)
 	local boardWidth = boardX*tileX
 	
@@ -826,6 +830,9 @@ function renderQueueBlock(blockToDraw)
 	local pieceToDraw = blockToDraw[piece]
 	local x = blockToDraw[col] + 9
 	local y = 12
+	if inverted then
+		y = 16
+	end
 	
 	local centering = 0
 	if blockToDraw[col] == 5 then
@@ -839,7 +846,11 @@ function renderQueueBlock(blockToDraw)
 	for i=1,blockToDraw[width] do
 		for j=1,blockToDraw[height] do
 			if pieceToDraw[i][j] then
-				love.graphics.draw(cubes[blockToDraw[color]], (tileX*(x+i-2))+centering, tileY*(y+j-2))
+				if inverted then
+					love.graphics.draw(cubes[gray], (tileX*(x+i-2))+centering, tileY*(y+j-2))
+				else
+					love.graphics.draw(cubes[other], (tileX*(x+i-2))+centering, tileY*(y+j-2))
+				end 
 			end
 			j=j+1
 		end
@@ -866,6 +877,9 @@ function beginGame()
 	score2 = 0
 	scoreThresholdTracker2 = 0
 
+	descentDelay = descentDelayStart 
+	descentDelay2 = descentDelayStart
+	
 	gameOver = false
 	gameState = play
 	gameOverTimer = 0
