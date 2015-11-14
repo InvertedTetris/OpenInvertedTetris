@@ -411,7 +411,7 @@ function update2(dt)
 		
 	if keyPressTimerD2 <= 0 then
 		if love.keyboard.isDown("w") then
-			if checkBlockedDown2() then
+			if checkBlockedUp2() then
 				addBlockToBoard2()
 			else
 				activeBlock2[row] = activeBlock2[row] - 1
@@ -426,7 +426,7 @@ function update2(dt)
 	descentTimer2 = descentTimer2 - dt
 	if descentTimer2 <=0 then
 		descentTimer2 = descentDelay
-		if checkBlockedDown2() then
+		if checkBlockedUp2() then
 			addBlockToBoard2()
 		else
 			activeBlock2[row] = activeBlock2[row] - 1
@@ -472,17 +472,17 @@ function checkBlockedDown()
 	return false
 end
 
---TODO Returns true if a block has 'landed'
-function checkBlockedDown2()
-	if activeBlock2[row] + activeBlock2[height] > boardY then
+--Returns true if a block has 'landed'
+function checkBlockedUp2()
+	if activeBlock2[row] < 2 then
 		return true
 	end
 	for i=1,activeBlock2[width] do
 		for j=1, activeBlock2[height] do
 			if activeBlock2[piece][i][j] then
 				if board[activeBlock2[col]+i-1]~=nil then
-					if board[activeBlock2[col]+i-1][activeBlock2[row]-j]~=nil then
-						if board[activeBlock2[col]+i-1][activeBlock2[row]-j]~=other then
+					if board[activeBlock2[col]+i-1][activeBlock2[row]+j-2]~=nil then
+						if board[activeBlock2[col]+i-1][activeBlock2[row]+j-2]~=other then
 							return true
 						end
 					end
