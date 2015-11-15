@@ -1,12 +1,13 @@
 --Global variables
-screenX = 640 
-screenY = 760
 
 boardX = 10
 boardY = 22
 
 tileX = 32
 tileY = 32
+
+screenX = 2 * boardX * tileX --640 
+screenY = boardY * tileY 	 --704 760
 
 cubes = {}
 gray = 1
@@ -41,7 +42,7 @@ rotPressDelay = 0.2 --Amount of time between rotation key presses
 keyPressDelay = 0.1 --Amount of time between non-rotation key presses
 descentDelayStart = 1--Amount of time for a piece to drop one square at game start
 minDelay = 0.05 --Minimum descent delay (never gets faster than this)
-scoreDelayThreshold = 1 --Score threshold for increase in descent speed
+scoreDelayThreshold = 2 --Score threshold for increase in descent speed
 speedIncrease = 0.05 --Reduction in time for a piece to drop when threshold is hit
 gameOverDelay = 1.5 --Amount of time between game over and ability to hit a key to continue
 
@@ -167,13 +168,6 @@ end
 function createImages()
 	cubes[gray] = love.graphics.newImage("images/cubeGray.png")
 	cubes[other] = love.graphics.newImage("images/cubeGreen.png")
---	cubes[orange] = love.graphics.newImage("images/cubeOrange.png")
---	cubes[yellow] = love.graphics.newImage("images/cubeYellow.png")
---	cubes[green] = love.graphics.newImage("images/cubeGreen.png")
---	cubes[cyan] = love.graphics.newImage("images/cubeCyan.png")
---	cubes[blue] = love.graphics.newImage("images/cubeBlue.png")
---	cubes[violet] = love.graphics.newImage("images/cubeViolet.png")
-
 end
 
 --Renders the current block to the screen
