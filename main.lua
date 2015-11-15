@@ -35,8 +35,9 @@ col = 1
 row = 2
 width = 3
 height = 4
-color = 5
+shape = 5
 rotation = 6
+color = 7
 
 rotPressDelay = 0.2 --Amount of time between rotation key presses
 keyPressDelay = 0.1 --Amount of time between non-rotation key presses
@@ -171,19 +172,17 @@ function createImages()
 end
 
 --Renders the current block to the screen
-function renderBlock(blockToDraw, inverted)
+function renderBlock(blockToDraw)
 	local pieceToDraw = blockToDraw[piece]
 	local x = blockToDraw[col]
 	local y = blockToDraw[row]
 
+	local paint = blockToDraw[color]
+
 	for i=1,blockToDraw[width] do
 		for j=1,blockToDraw[height] do
 			if pieceToDraw[i][j] then
-				if inverted then
-					love.graphics.draw(cubes[gray], tileX*(x+i-2), tileY*(y+j-2))
-				else
-					love.graphics.draw(cubes[other], tileX*(x+i-2), tileY*(y+j-2))
-				end
+				love.graphics.draw(cubes[paint], tileX*(x+i-2), tileY*(y+j-2))
 			end
 			j=j+1
 		end
@@ -192,23 +191,17 @@ function renderBlock(blockToDraw, inverted)
 end
 
 --Randomly chooses a new block to drop and returns it
-function getNewBlock(inverted)
+function getNewBlock(inverted)	--inverted -> newRow (starting position), color
 	math.random()
 	math.random()
 	math.random()
-	
-	local newPiece = math.random(pieceI, pieceZ)
-	local newRow = 1
-	if inverted then
-		newRow = boardY-4
-	end
-	local newCol = pieceCentering[newPiece] + 1
 	
 	local newBlock = {}
-	newBlock[piece] = pieces[newPiece]
-	newBlock[col] = newCol
-	newBlock[row] = newRow
-	
+	local newPiece = math.random(pieceI, pieceZ)
+	local newCol = pieceCentering[newPiece] + 1
+	local newRow 
+	local newColor
+
 	local i=1
 	local j=1
 	while pieces[newPiece][i]~=nil do
@@ -217,11 +210,23 @@ function getNewBlock(inverted)
 			end
 		i=i+1
 	end
+	if inverted then
+		newRow = boardY-(j-2)
+		newColor = gray 
+	else
+		newRow = 1
+		newColor = other 
+	end
+
+	newBlock[piece] = pieces[newPiece]
+	newBlock[col] = newCol
+	newBlock[row] = newRow
 	newBlock[width] = i-1
 	newBlock[height] = j-1
-	newBlock[color] = newPiece
+	newBlock[shape] = newPiece
 	newBlock[rotation] = 1
-	
+	newBlock[color]	= newColor 
+
 	return newBlock
 end
 
@@ -247,7 +252,7 @@ function love.draw()
 	end
 	
 	renderBlock(activeBlock)
-	renderBlock(activeBlock2, true)
+	renderBlock(activeBlock2)
 	renderQueueBlock(queueBlock, false)
 	renderQueueBlock(queueBlock2, true)
 end
@@ -320,7 +325,7 @@ function update1(dt)
 		
 	if keyPressTimerL <= 0 then
 		if love.keyboard.isDown("left") then
-			if checkBlockedLeft()==false then
+			if checkBlockedLeft(activeBlock)==false then
 				activeBlock[col] = activeBlock[col] - 1
 			end
 			keyPressTimerL = keyPressDelay
@@ -329,7 +334,7 @@ function update1(dt)
 
 	if keyPressTimerR <= 0 then
 		if love.keyboard.isDown("right") then
-			if checkBlockedRight()==false then
+			if checkBlockedRight(activeBlock)==false then
 				activeBlock[col] = activeBlock[col] + 1
 			end
 			keyPressTimerR = keyPressDelay
@@ -378,7 +383,7 @@ function update2(dt)
 		
 	if keyPressTimerL2 <= 0 then
 		if love.keyboard.isDown("a") then
-			if checkBlockedLeft2()==false then
+			if checkBlockedLeft(activeBlock2)==false then
 				activeBlock2[col] = activeBlock2[col] - 1
 			end
 			keyPressTimerL2 = keyPressDelay
@@ -387,7 +392,7 @@ function update2(dt)
 
 	if keyPressTimerR2 <= 0 then
 		if love.keyboard.isDown("d") then
-			if checkBlockedRight2()==false then
+			if checkBlockedRight(activeBlock2)==false then
 				activeBlock2[col] = activeBlock2[col] + 1
 			end
 			keyPressTimerR2 = keyPressDelay
@@ -479,7 +484,7 @@ function checkBlockedUp2()
 end
 
 --Returns true if a block can't slide to the left
-function checkBlockedLeft()
+function checkBlockedLeft(activeBlock)
 	if activeBlock[col] < 2 then
 		return true
 	end
@@ -488,28 +493,7 @@ function checkBlockedLeft()
 			if activeBlock[piece][i][j] then
 				if board[activeBlock[col]+i-2]~=nil then
 					if board[activeBlock[col]+i-2][activeBlock[row]+j-1]~=nil then
-						if board[activeBlock[col]+i-2][activeBlock[row]+j-1]~=gray then
-							return true
-						end
-					end
-				end
-			end
-		end
-	end
-	return false
-end
-
---Returns true if a block can't slide to the left
-function checkBlockedLeft2()
-	if activeBlock2[col] < 2 then
-		return true
-	end
-	for i=1,activeBlock2[width] do
-		for j=1,activeBlock2[height] do
-			if activeBlock2[piece][i][j] then
-				if board[activeBlock2[col]+i-2]~=nil then
-					if board[activeBlock2[col]+i-2][activeBlock2[row]+j-1]~=nil then
-						if board[activeBlock2[col]+i-2][activeBlock2[row]+j-1]~=other then
+						if board[activeBlock[col]+i-2][activeBlock[row]+j-1]==activeBlock[color] then
 							return true
 						end
 					end
@@ -521,7 +505,7 @@ function checkBlockedLeft2()
 end
 
 --Returns true if a block can't slide to the right
-function checkBlockedRight()
+function checkBlockedRight(activeBlock)
 	if activeBlock[col] + activeBlock[width] > boardX then
 		return true
 	end
@@ -530,7 +514,7 @@ function checkBlockedRight()
 			if activeBlock[piece][i][j] then
 				if board[activeBlock[col]+i]~=nil then
 					if board[activeBlock[col]+i][activeBlock[row]+j-1]~=nil then
-						if board[activeBlock[col]+i][activeBlock[row]+j-1]~=gray then
+						if board[activeBlock[col]+i][activeBlock[row]+j-1]==activeBlock[color] then
 							return true
 						end
 					end
@@ -540,28 +524,6 @@ function checkBlockedRight()
 	end
 	return false
 end
-
---Returns true if a block can't slide to the right
-function checkBlockedRight2()
-	if activeBlock2[col] + activeBlock2[width] > boardX then
-		return true
-	end
-	for i=1,activeBlock2[width] do
-		for j=1,activeBlock2[height] do
-			if activeBlock2[piece][i][j] then
-				if board[activeBlock2[col]+i]~=nil then
-					if board[activeBlock2[col]+i][activeBlock2[row]+j-1]~=nil then
-						if board[activeBlock2[col]+i][activeBlock2[row]+j-1]~=other then
-							return true
-						end
-					end
-				end
-			end
-		end
-	end
-	return false
-end
-
 
 --Returns true if a block is in a legal position
 function checkLegal(blockToCheck, inverted)
@@ -586,19 +548,20 @@ end
 --Attempts to rotate a piece clockwise, does nothing if illegal
 function attemptRotation()
 	--No sense rotating the box piece
-	if activeBlock[color] == pieceO then
+	if activeBlock[shape] == pieceO then
 		return
 	end
 	
 	local newBlock = {}
 	newBlock[piece] = {}
+	newBlock[shape] = activeBlock[shape]
 	newBlock[color] = activeBlock[color]
 	newBlock[rotation] = activeBlock[rotation]+1
 	if newBlock[rotation] == 5 then
 		newBlock[rotation] = 1
 	end
 
-	if activeBlock[color] == pieceI or activeBlock[color] == pieceS or activeBlock[color] == pieceZ then
+	if activeBlock[shape] == pieceI or activeBlock[shape] == pieceS or activeBlock[shape] == pieceZ then
 		if activeBlock[rotation] == 1 then
 			newBlock[col] = activeBlock[col]-math.floor((activeBlock[height]-activeBlock[width])/2)
 			newBlock[row] = activeBlock[row]-math.ceil((activeBlock[width]-activeBlock[height])/2)
@@ -654,19 +617,20 @@ end
 --Attempts to rotate a piece clockwise, does nothing if illegal
 function attemptRotation2()
 	--No sense rotating the box piece
-	if activeBlock2[color] == pieceO then
+	if activeBlock2[shape] == pieceO then
 		return
 	end
 	
 	local newBlock = {}
 	newBlock[piece] = {}
+	newBlock[shape] = activeBlock2[shape]
 	newBlock[color] = activeBlock2[color]
 	newBlock[rotation] = activeBlock2[rotation]+1
 	if newBlock[rotation] == 5 then
 		newBlock[rotation] = 1
 	end
 
-	if activeBlock2[color] == pieceI or activeBlock2[color] == pieceS or activeBlock2[color] == pieceZ then
+	if activeBlock2[shape] == pieceI or activeBlock2[shape] == pieceS or activeBlock2[shape] == pieceZ then
 		if activeBlock2[rotation] == 1 then
 			newBlock[col] = activeBlock2[col]-math.floor((activeBlock2[height]-activeBlock2[width])/2)
 			newBlock[row] = activeBlock2[row]-math.ceil((activeBlock2[width]-activeBlock2[height])/2)
@@ -840,11 +804,7 @@ function renderQueueBlock(blockToDraw, inverted)
 	for i=1,blockToDraw[width] do
 		for j=1,blockToDraw[height] do
 			if pieceToDraw[i][j] then
-				if inverted then
-					love.graphics.draw(cubes[gray], (tileX*(x+i-2))+centering, tileY*(y+j-2))
-				else
-					love.graphics.draw(cubes[other], (tileX*(x+i-2))+centering, tileY*(y+j-2))
-				end 
+				love.graphics.draw(cubes[blockToDraw[color]], (tileX*(x+i-2))+centering, tileY*(y+j-2))
 			end
 			j=j+1
 		end
@@ -855,29 +815,7 @@ end
 --Run at the beginning of each game
 function beginGame()
 	board = createBoard()
-	descentTimer = 0
-	keyPressTimerL = 0
-	keyPressTimerR = 0
-	keyPressTimerU = 0
-	keyPressTimerD = 0
-	score = 0
-	scoreThresholdTracker = 0
 
-	descentTimer2 = 0
-	keyPressTimerL2 = 0
-	keyPressTimerR2 = 0
-	keyPressTimerU2 = 0
-	keyPressTimerD2 = 0
-	score2 = 0
-	scoreThresholdTracker2 = 0
-
-	descentDelay = descentDelayStart 
-	descentDelay2 = descentDelayStart
-	
-	gameOver = false
-	gameState = play
-	gameOverTimer = 0
-	
 	activeBlock = {}
 	queueBlock = {}
 	activeBlock = getNewBlock()
@@ -887,6 +825,27 @@ function beginGame()
 	queueBlock2 = {}
 	activeBlock2 = getNewBlock(true)
 	queueBlock2 = getNewBlock(true)
+
+	descentTimer = 0
+	keyPressTimerL = 0
+	keyPressTimerR = 0
+	keyPressTimerU = 0
+	keyPressTimerD = 0
+	scoreThresholdTracker = 0
+	descentDelay = descentDelayStart 
+
+	descentTimer2 = 0
+	keyPressTimerL2 = 0
+	keyPressTimerR2 = 0
+	keyPressTimerU2 = 0
+	keyPressTimerD2 = 0
+	scoreThresholdTracker2 = 0
+	descentDelay2 = descentDelayStart
+	
+	score = 0
+	gameOver = false
+	gameState = play
+	gameOverTimer = 0
 end
 
 --Run once at game start 
