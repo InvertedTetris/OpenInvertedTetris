@@ -1,16 +1,15 @@
 function love.conf( t )
 
-	t.title = "Tetris"			-- The window title (string)
-	t.author = "Todd Nelling and Oren"  -- The author of the game (string)
+	t.title = "Open Inverted Tetris"	-- The window title (string)
+	t.author = "Todd Nelling and Lorenz Haspel"  -- The author of the game (string)
 
---	t.version = 0.72            -- The LÖVE version this game was made for (number)
+	--t.version = 0.80           	-- The LÖVE version this game was made for (number)
 	t.console = false           -- Attach a console (boolean, Windows only)
 	t.screen.fullscreen = false-- Enable fullscreen (boolean)
 	t.screen.vsync = true       -- Enable vertical sync (boolean)
 	t.screen.fsaa = 0           -- The number of FSAA-buffers (number)
 	t.screen.width = 640        -- The window width (number)
-	t.screen.height = 704
-	-- The window height (number)
+	t.screen.height = 704		-- The window height (number)
 
 	t.modules.joystick = false   -- Enable the joystick module (boolean)
 	t.modules.audio = false      -- Enable the audio module (boolean)

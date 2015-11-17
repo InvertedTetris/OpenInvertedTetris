@@ -276,12 +276,20 @@ end
 
 --Draw the game title
 function renderTitle()
-	local toPrint = "OpenInverted"
-	local textWidth = bigFont:getWidth(toPrint)
+	local toPrintA = "OpenInverted"
+	local textWidthA = bigFont:getWidth(toPrintA)
 	local boardWidth = boardX*tileX
 	
 	love.graphics.setFont(bigFont)
-	love.graphics.print(toPrint, (boardWidth+screenX-textWidth)/2, 50)
+	love.graphics.print(toPrintA, (boardWidth+screenX-textWidthA)/2, 50)
+
+	local toPrintB = "use arrow keys" 
+	local toPrintC = "and wasd to move"
+	local textWidthB = smallFont:getWidth(toPrintB)
+	local textWidthC = smallFont:getWidth(toPrintC)
+	love.graphics.setFont(smallFont)
+	love.graphics.print(toPrintB, (boardWidth+screenX-textWidthB)/2, 115)
+	love.graphics.print(toPrintC, (boardWidth+screenX-textWidthC)/2, 130)
 end
 
 --Draw the pause screen
@@ -526,7 +534,7 @@ function checkBlockedRight(activeBlock)
 end
 
 --Returns true if a block is in a legal position
-function checkLegal(blockToCheck, inverted)
+function checkLegal(blockToCheck)
 	for i=1,blockToCheck[width] do
 		for j=1,blockToCheck[height] do
 			if blockToCheck[piece][i][j] then
@@ -534,9 +542,7 @@ function checkLegal(blockToCheck, inverted)
 					return false
 				elseif board[blockToCheck[col]+i-1][blockToCheck[row]+j-1] == nil then
 					return false
-				elseif inverted and board[blockToCheck[col]+i-1][blockToCheck[row]+j-1]~=other then
-					return false
-				elseif not inverted and board[blockToCheck[col]+i-1][blockToCheck[row]+j-1]~=gray then
+				elseif board[blockToCheck[col]+i-1][blockToCheck[row]+j-1]==blockToCheck[color] then
 					return false
 				end
 			end
@@ -673,11 +679,11 @@ function attemptRotation2()
 		end
 	end
 	
-	if checkLegal(newBlock, true)==true then
+	if checkLegal(newBlock)==true then
 		activeBlock2 = newBlock
 	else
 		bump(newBlock)
-		if checkLegal(newBlock, true)==true then
+		if checkLegal(newBlock)==true then
 			activeBlock2 = newBlock
 		end
 	end
@@ -730,7 +736,7 @@ function addBlockToBoard2()
 	activeBlock2 = queueBlock2
 	
 	--Check to see if game is over
-	if checkLegal(activeBlock2, true)==false then
+	if checkLegal(activeBlock2)==false then
 		gameOver = true
 	end
 	
@@ -766,14 +772,13 @@ function increaseDifficulty(inverted)
 end
 
 --Draws score to screen
---TODO round time
 function renderScore()
-	local toPrint = "Time: " .. score
+	local toPrint = "Time: " .. math.floor(score) .."." .. math.floor((score-math.floor(score))*10)
 	local textWidth = medFont:getWidth(toPrint)
 	local boardWidth = boardX*tileX
 	
 	love.graphics.setFont(medFont)
-	love.graphics.print(toPrint, (boardWidth+screenX-textWidth)/2, 150)
+	love.graphics.print(toPrint, (boardWidth+screenX-textWidth)/2, 200)
 end
 
 --Draws upcoming block
@@ -783,13 +788,13 @@ function renderQueueBlock(blockToDraw, inverted)
 	local boardWidth = boardX*tileX
 	
 	love.graphics.setFont(medFont)
-	love.graphics.print(toPrint, (boardWidth+screenX-textWidth)/2, 250)
+	love.graphics.print(toPrint, (boardWidth+screenX-textWidth)/2, 304)
 	
 	local pieceToDraw = blockToDraw[piece]
-	local x = blockToDraw[col] + 9
-	local y = 12
+	local x = blockToDraw[col] + 10
+	local y = 14
 	if inverted then
-		y = 16
+		y = y+4	
 	end
 	
 	local centering = 0
