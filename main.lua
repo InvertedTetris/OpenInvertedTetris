@@ -1,13 +1,13 @@
 --Global variables
 
 boardX = 10
-boardY = 22
+boardY = 21
 
 tileX = 32
 tileY = 32
 
 screenX = 2 * boardX * tileX --640 
-screenY = boardY * tileY 	 --704 760
+screenY = boardY * tileY 	 --672
 
 cubes = {}
 gray = 1
@@ -60,7 +60,7 @@ function createBoard()
 		for j=1, boardY do
 			if j < boardY/2 then
 				myBoard[i][j] = gray
-			else if j == boardY/2 and i <= boardX/2 then
+			else if j == math.ceil(boardY/2) and i <= boardX/2 then
 					myBoard[i][j] =	gray 
 				else
 					myBoard[i][j] =	other
@@ -205,9 +205,9 @@ function getNewBlock(inverted)	--inverted -> newRow (starting position), color
 	local i=1
 	local j=1
 	while pieces[newPiece][i]~=nil do
-			while pieces[newPiece][i][j]~=nil do
-				j=j+1
-			end
+		while pieces[newPiece][i][j]~=nil do
+			j=j+1
+		end
 		i=i+1
 	end
 	if inverted then
@@ -693,6 +693,8 @@ end
 function bump(blockToBump)
 	if blockToBump[row] < 1 then
 		blockToBump[row] = 1
+	elseif (blockToBump[row]+blockToBump[height]-1) > boardY then
+		blockToBump[row] = boardY-blockToBump[height]+1
 	end
 	
 	if blockToBump[col] < 1 then
