@@ -27,7 +27,7 @@ function love.conf( t )
 
     t.icon = nil                       -- The path to the executable icons (string)
     t.email = "inverted_tetris@web.de" -- The email of the author (string)
-    t.url = nil                        -- The website of the game (string)
+    t.url = "https://github.com/InvertedTetris/OpenInvertedTetris" -- The website of the game (string)
     t.description = "A tribute to the (no longer existing) flashgame Inverted. Your goal in this awesome spin on Tetris is to practice your multi-tasking abilities. You must avoid letting the blocks hit the top or the bottom for as long as possible. Use the ARROW KEYS to control top half of the game and use WASD KEYS to control bottom half of the game. Good luck!"
 
     -- OS to release your game on. Use a table if you want to overwrite the options, or just the OS name.
