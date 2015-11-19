@@ -1,11 +1,12 @@
 function love.conf( t )
+    t.identity = nil                   -- The name of the save directory (string)
 
 	t.title = "Open Inverted Tetris"	-- The window title (string)
-	t.author = "Todd Nelling and Lorenz Haspel"  -- The author of the game (string)
+	t.author = "Lorenz Haspel and Todd Nelling"  -- The author of the game (string)
 
-	--t.version = 0.80           	-- The LÖVE version this game was made for (number)
+	t.version = "0.9.2"           	-- The LÖVE version this game was made for (number)
 	t.console = false           -- Attach a console (boolean, Windows only)
-	t.screen.fullscreen = false-- Enable fullscreen (boolean)
+	t.screen.fullwindow = false-- Enable fullwindow (boolean)
 	t.screen.vsync = true       -- Enable vertical sync (boolean)
 	t.screen.fsaa = 0           -- The number of FSAA-buffers (number)
 	t.screen.width = 640        -- The window width (number)
@@ -21,5 +22,28 @@ function love.conf( t )
 	t.modules.mouse = false      -- Enable the mouse module (boolean)
 	t.modules.sound = false      -- Enable the sound module (boolean)
 	t.modules.physics = false   -- Enable the physics module (boolean)
+
+
+    t.icon = nil                       -- The path to the executable icons (string)
+    t.email = nil                      -- The email of the author (string)
+    t.url = nil                        -- The website of the game (string)
+    t.description = "A tribute to the (no longer existing) flashgame Inverted. Your goal in this awesome spin on Tetris is to practice your multi-tasking abilities. You must avoid letting the blocks hit the top or the bottom for as long as possible. Use the ARROW KEYS to control top half of the game and use WASD KEYS to control bottom half of the game. Good luck!"
+
+    -- OS to release your game on. Use a table if you want to overwrite the options, or just the OS name.
+    -- Available OS are "love", "windows", "osx", "debian" and "android".
+    -- A LÖVE file is created if none is specified.
+    t.os = {
+        "love",
+        windows = {
+            x32       = true,
+            x64       = true,
+            installer = false,
+            appid     = nil,
+        },
+        "osx",
+        "debian",
+        --"android",
+    }
+
 
 end
