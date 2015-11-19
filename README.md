@@ -4,6 +4,7 @@ You must avoid letting the blocks hit the top or the bottom for as long as possi
 Use the ARROW KEYS to control top half of the game and use WASD KEYS to control bottom half of the game.
 Good luck!
 
+----
 
 RUN THE GAME
 
