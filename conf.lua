@@ -1,7 +1,7 @@
 function love.conf( t )
 
 
-	t.title = "Open Inverted Tetris"	-- The window title (string)
+	t.title = "OpenInvertedTetris"	-- The window title (string)
 	t.author = "Lorenz Haspel and Todd Nelling"  -- The author of the game (string)
 
     t.identity = nil                   -- The name of the save directory (string)

@@ -31,7 +31,7 @@ To play the game from source code:
 
 2. Run "love <source_code_directory>"
 
----
+----
 
 To view the source code/files:
 
@@ -56,6 +56,7 @@ or
 rename all 'window' entries in conf.lua to 'screen'
 this was changed from love version 0.8 to 0.9
 
+----
 
 CREDITS
 
